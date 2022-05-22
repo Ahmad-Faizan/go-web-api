@@ -35,6 +35,7 @@ func main() {
 		WriteTimeout: 1 * time.Second,
 		Addr:         "127.0.0.1:9090",
 		Handler:      mux,
+		ErrorLog:     l,
 	}
 
 	// start the server in a new goroutine
