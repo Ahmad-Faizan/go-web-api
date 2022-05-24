@@ -2,6 +2,7 @@ package data
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"time"
 )
@@ -17,15 +18,55 @@ type Product struct {
 	DeletedOn   string `json:"-"`
 }
 
+var ErrProductNotFound = fmt.Errorf("product does not exist")
+
 type Products []*Product
 
 func GetProducts() Products {
 	return productList
 }
 
+func AddProduct(p *Product) {
+	p.ID = getNewID()
+	p.CreatedOn = time.Now().UTC().String()
+	p.UpdatedOn = time.Now().UTC().String()
+
+	productList = append(productList, p)
+}
+
+func UpdateProduct(p *Product) error {
+	_, idx, err := fetchProductByID(p.ID)
+	if err != nil {
+		return err
+	}
+
+	productList[idx] = p
+	return nil
+}
+
 func (p *Products) ToJSON(w io.Writer) error {
 	enc := json.NewEncoder(w)
 	return enc.Encode(p)
+}
+
+func (p *Product) FromJSON(r io.Reader) error {
+	dec := json.NewDecoder(r)
+	return dec.Decode(p)
+}
+
+func getNewID() int {
+	lp := productList[len(productList)-1]
+	return lp.ID + 1
+}
+
+func fetchProductByID(id int) (*Product, int, error) {
+	for i, p := range productList {
+		if p.ID == id {
+			return p, i, nil
+		}
+	}
+
+	return nil, -1, ErrProductNotFound
 }
 
 // This is a static list of products acting as a dummy database
