@@ -17,16 +17,12 @@ func main() {
 	// create a global logger
 	l := log.New(os.Stdout, "product-api ", log.LstdFlags)
 
-	// index handler
-	hh := handlers.NewHello(l)
-
-	// goodbye handler
-	gh := handlers.NewGoodbye(l)
+	// get a product handler
+	ph := handlers.NewProduct(l)
 
 	// define a new server multiplexer
 	mux := http.NewServeMux()
-	mux.Handle("/", hh)
-	mux.Handle("/goodbye", gh)
+	mux.Handle("/", ph)
 
 	// define the server
 	srv := http.Server{
