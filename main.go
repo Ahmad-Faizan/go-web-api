@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"time"
 
+	_ "github.com/Ahmad-Faizan/go-web-api/docs"
 	"github.com/Ahmad-Faizan/go-web-api/handlers"
 	"github.com/gorilla/mux"
 )
