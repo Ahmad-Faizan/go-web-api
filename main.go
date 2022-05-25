@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Ahmad-Faizan/go-web-api/handlers"
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -21,8 +22,18 @@ func main() {
 	ph := handlers.NewProduct(l)
 
 	// define a new server multiplexer
-	mux := http.NewServeMux()
-	mux.Handle("/", ph)
+	mux := mux.NewRouter()
+
+	getRouter := mux.Methods(http.MethodGet).Subrouter()
+	getRouter.HandleFunc("/", ph.GetProducts)
+
+	postRouter := mux.Methods(http.MethodPost).Subrouter()
+	postRouter.HandleFunc("/", ph.AddProduct)
+	postRouter.Use(ph.MiddlewareProductValidator)
+
+	putRouter := mux.Methods(http.MethodPut).Subrouter()
+	putRouter.HandleFunc("/{id:[0-9]+}", ph.UpdateProduct)
+	putRouter.Use(ph.MiddlewareProductValidator)
 
 	// define the server
 	srv := http.Server{
