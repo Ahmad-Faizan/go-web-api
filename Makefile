@@ -4,5 +4,5 @@ check-swagger:
 swagger: check-swagger
 	swagger generate spec -o ./swagger.yaml --scan-models
 
-serve-swagger: check-swagger
+serve-swagger: swagger
 	swagger serve -F=swagger swagger.yaml

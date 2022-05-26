@@ -1,107 +1,55 @@
 package handlers
 
 import (
-	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/Ahmad-Faizan/go-web-api/data"
 	"github.com/gorilla/mux"
 )
 
+// Product handler for operating on a product
 type Product struct {
 	l *log.Logger
+	v *data.Validation
 }
 
+// KeyProduct is a key used for Product inside the request context
 type KeyProduct struct{}
 
 // NewProduct creates a new product handler with the specified logger
-func NewProduct(l *log.Logger) *Product {
-	return &Product{l: l}
-}
-
-func (p *Product) GetProducts(w http.ResponseWriter, r *http.Request) {
-	p.l.Println("Handle GET products")
-
-	// Fetch the data from data access layer
-	pl := data.GetProducts()
-
-	// return the response in JSON format
-	err := pl.ToJSON(w)
-	if err != nil {
-		p.l.Println(err)
-		http.Error(w, "Unable to return products", http.StatusInternalServerError)
+func NewProduct(l *log.Logger, v *data.Validation) *Product {
+	return &Product{
+		l: l,
+		v: v,
 	}
 }
 
-func (p *Product) AddProduct(w http.ResponseWriter, r *http.Request) {
-	p.l.Println("Handle POST product")
+// ErrInvalidProductPath is an error message when the product path is not valid
+var ErrInvalidProductPath = fmt.Errorf("invalid Path, path should be /products/[id]")
 
-	// read product from the request body
-	prod := r.Context().Value(KeyProduct{}).(*data.Product)
-
-	data.AddProduct(prod)
+// GenericError is a generic error message returned by a server
+type GenericError struct {
+	Message string `json:"message"`
 }
 
-func (p *Product) UpdateProduct(w http.ResponseWriter, r *http.Request) {
-	p.l.Println("Handle PUT product")
+// ValidationError is a collection of validation error messages
+type ValidationError struct {
+	Messages []string `json:"messages"`
+}
 
-	// read product id from the request url
+// getProductID returns the product ID from the URL
+func getProductID(r *http.Request) int {
+	// parse the product id from the url
 	vars := mux.Vars(r)
+
+	// convert the id into an integer and return
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		p.l.Println("unable to parse ID from request", err)
-		http.Error(w, "Unable to parse ID", http.StatusBadRequest)
-		return
+		panic(err)
 	}
 
-	// read product from the request body
-	prod := r.Context().Value(KeyProduct{}).(*data.Product)
-
-	prod.ID = id
-	prod.UpdatedOn = time.Now().UTC().String()
-	err = data.UpdateProduct(prod)
-
-	if err == data.ErrProductNotFound {
-		p.l.Println("product not found", err)
-		http.Error(w, "Product not found", http.StatusNotFound)
-		return
-	}
-
-	if err != nil {
-		p.l.Println("product not found", err)
-		http.Error(w, "Product not found", http.StatusInternalServerError)
-		return
-	}
-}
-
-func (p Product) MiddlewareProductValidator(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		// read product from request body
-		prod := &data.Product{}
-		err := prod.FromJSON(r.Body)
-		if err != nil {
-			p.l.Println("cannot read the request body as product", err)
-			http.Error(w, "Unable to parse request body", http.StatusBadRequest)
-			return
-		}
-
-		// Validate the product using validator package
-		err = prod.Validate()
-		if err != nil {
-			p.l.Println("error in validating the product", err)
-			http.Error(w, "Error validating the product", http.StatusBadRequest)
-			return
-		}
-
-		// add the product to the request context
-		ctx := context.WithValue(r.Context(), KeyProduct{}, prod)
-		r = r.WithContext(ctx)
-
-		// call the next handler in the chain
-		next.ServeHTTP(w, r)
-	})
+	return id
 }

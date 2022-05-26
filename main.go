@@ -9,8 +9,10 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/Ahmad-Faizan/go-web-api/data"
 	_ "github.com/Ahmad-Faizan/go-web-api/docs"
 	"github.com/Ahmad-Faizan/go-web-api/handlers"
+	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/mux"
 )
 
@@ -19,22 +21,35 @@ func main() {
 	// create a global logger
 	l := log.New(os.Stdout, "product-api ", log.LstdFlags)
 
+	// create a global validator
+	v := data.NewValidation()
+
 	// get a product handler
-	ph := handlers.NewProduct(l)
+	ph := handlers.NewProduct(l, v)
 
 	// define a new server multiplexer
 	mux := mux.NewRouter()
 
 	getRouter := mux.Methods(http.MethodGet).Subrouter()
-	getRouter.HandleFunc("/", ph.GetProducts)
+	getRouter.HandleFunc("/products/", ph.GetProducts)
+	getRouter.HandleFunc("/products/{id:[0-9]+}", ph.GetProduct)
 
 	postRouter := mux.Methods(http.MethodPost).Subrouter()
-	postRouter.HandleFunc("/", ph.AddProduct)
+	postRouter.HandleFunc("/products/", ph.AddProduct)
 	postRouter.Use(ph.MiddlewareProductValidator)
 
 	putRouter := mux.Methods(http.MethodPut).Subrouter()
-	putRouter.HandleFunc("/{id:[0-9]+}", ph.UpdateProduct)
+	putRouter.HandleFunc("/products/{id:[0-9]+}", ph.UpdateProduct)
 	putRouter.Use(ph.MiddlewareProductValidator)
+
+	deleteRouter := mux.Methods(http.MethodDelete).Subrouter()
+	deleteRouter.HandleFunc("/products/{id:[0-9]+}", ph.DeleteProduct)
+
+	// handlers for documentation
+	opts := middleware.RedocOpts{SpecURL: "/swagger.yaml"}
+	swagh := middleware.Redoc(opts, nil)
+	getRouter.Handle("/docs", swagh)
+	getRouter.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
 
 	// define the server
 	srv := http.Server{
