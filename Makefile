@@ -6,3 +6,6 @@ swagger: check-swagger
 
 serve-swagger: swagger
 	swagger serve -F=swagger swagger.yaml
+
+generate-client: swagger
+	swagger generate client -f swagger.yaml
