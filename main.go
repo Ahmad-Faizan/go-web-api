@@ -13,6 +13,7 @@ import (
 	_ "github.com/Ahmad-Faizan/go-web-api/docs"
 	"github.com/Ahmad-Faizan/go-web-api/handlers"
 	"github.com/go-openapi/runtime/middleware"
+	corsHandler "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
@@ -51,13 +52,17 @@ func main() {
 	getRouter.Handle("/docs", swagh)
 	getRouter.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
 
+	//CORS
+	corsOpts := corsHandler.AllowedOrigins([]string{"*"})
+	corsH := corsHandler.CORS(corsOpts)
+
 	// define the server
 	srv := http.Server{
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
 		Addr:         "127.0.0.1:9090",
-		Handler:      mux,
+		Handler:      corsH(mux),
 		ErrorLog:     l,
 	}
 
