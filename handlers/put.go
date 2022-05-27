@@ -7,7 +7,7 @@ import (
 	"github.com/Ahmad-Faizan/go-web-api/data"
 )
 
-// swagger:route PUT /products products updateProduct
+// swagger:route PUT /products/{id} products updateProduct
 // Update the details of a product
 //
 // responses:
@@ -27,6 +27,7 @@ func (p *Product) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	prod.UpdatedOn = time.Now().UTC().String()
 
 	p.l.Println("[DEBUG] updating product id", prod.ID)
+	w.Header().Add("Content-Type", "application/json")
 
 	err := data.UpdateProduct(prod)
 	if err == data.ErrProductNotFound {

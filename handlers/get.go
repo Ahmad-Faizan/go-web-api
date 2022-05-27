@@ -14,6 +14,7 @@ import (
 // GetProducts handles GET requests and returns all current products
 func (p *Product) GetProducts(w http.ResponseWriter, r *http.Request) {
 	p.l.Println("[DEBUG] Get all products")
+	w.Header().Add("Content-Type", "application/json")
 
 	// Fetch the product list from database
 	pl := data.GetProducts()
@@ -37,6 +38,7 @@ func (p *Product) GetProduct(w http.ResponseWriter, r *http.Request) {
 	id := getProductID(r)
 
 	p.l.Println("[DEBUG] get record id", id)
+	w.Header().Add("Content-Type", "application/json")
 
 	prod, err := data.GetProductByID(id)
 

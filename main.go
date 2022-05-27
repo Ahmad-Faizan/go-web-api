@@ -31,11 +31,11 @@ func main() {
 	mux := mux.NewRouter()
 
 	getRouter := mux.Methods(http.MethodGet).Subrouter()
-	getRouter.HandleFunc("/products/", ph.GetProducts)
+	getRouter.HandleFunc("/products", ph.GetProducts)
 	getRouter.HandleFunc("/products/{id:[0-9]+}", ph.GetProduct)
 
 	postRouter := mux.Methods(http.MethodPost).Subrouter()
-	postRouter.HandleFunc("/products/", ph.AddProduct)
+	postRouter.HandleFunc("/products", ph.AddProduct)
 	postRouter.Use(ph.MiddlewareProductValidator)
 
 	putRouter := mux.Methods(http.MethodPut).Subrouter()
