@@ -11,6 +11,8 @@ import (
 func (p *Product) MiddlewareProductValidator(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
+		w.Header().Add("Content-Type", "application/json")
+
 		// read product from request body
 		prod := &data.Product{}
 		err := data.FromJSON(prod, r.Body)
